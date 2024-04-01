@@ -7,80 +7,62 @@ from kafka import KafkaProducer
 from src.app.twitter.twitterapi import Twitterapi
 import json
 import time,csv
+from datetime import datetime
 
-
-# dev
+# it should be get from container env
 dotenv_path = Path('.venv')
 load_dotenv(dotenv_path=dotenv_path)
+#
+kafka_topic = os.getenv('KAFKA_TOPIC')
+bearer_token = os.getenv('BEARER_TOKEN')
+stream_souce = os.getenv('STREAM_SOURCE')
+
+# init kafka
+kafka_producer = KafkaProducer(bootstrap_servers='kafka:9093') 
 
 app = FastAPI()
 
-
-# arg hashtag - lang
-@app.get("/")
+@app.get("/streaming_csv")
 async def root():
-
-
-     # init kafka
-    """
-    bearer_token = os.getenv('BEARER_TOKEN')
-    producer = KafkaProducer(
-                bootstrap_servers='localhost:9092', 
-                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            )   
-    """ 
-    
-    producer = KafkaProducer(bootstrap_servers='kafka:9093')  
-    
-
+ 
     # with open csv
-    csvfile = open("/code/src/app/twitter/tweets.csv","r")
-    # csvfile = open("/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/app/twitter/tweets.csv","r")
+    csvfile = open("/code/src/app/twitter/tweets.csv","r") # ENV STREAM_SOURCE
 
     reader = csv.DictReader(csvfile)
+
     for row in reader:
 
-        data_to_send = json.dumps(row) 
+        data = {
+            "text": row['text'], # ENV field source
+            "datetime": datetime.now()
+        }
 
-        """
-        {"tweet_id": "569281033365037056", 
-        "airline_sentiment": "negative", 
-        "airline_sentiment_confidence": "1.0", 
-        "negativereason": "Lost Luggage", 
-        "negativereason_confidence": "0.6882", 
-        "airline": "United", 
-        "airline_sentiment_gold": "", 
-        "name": "hannahcbeck", 
-        "negativereason_gold": "", 
-        "retweet_count": "1", 
-        "text": "@united No customer service rep could confirm where my bag was &amp; each gave me different info. Ruined 2 events I had today. #disappointed", 
-        "tweet_coord": "[35.00096266, -80.87374938]", 
-        "tweet_created": "2015-02-21 15:42:29 -0800", 
-        "tweet_location": "Hoboken, NJ", 
-        "user_timezone": "Eastern Time (US & Canada)"}
-        """
-
-        #print(data_to_send)
+        data_to_send = json.dumps(data) 
 
         # send data via producer
-        producer.send('trump', bytes(data_to_send, encoding='utf-8'))
-        # 
-        time.sleep(1)
+        kafka_producer.send(kafka_topic, bytes(data_to_send, encoding='utf-8'))
+        
+        time.sleep(1) # ENV
+
+    kafka_producer.close()
+
+    return {"message": "finished"}
 
 
-    producer.close()
+
+@app.get("/streaming_twitter")
+async def root():
+
     # init twitter 
-    # printer = Twitterapi(bearer_token)
+    printer = Twitterapi(bearer_token)
     # 
     # init streaming 
-    # printer.stream("saime", kafka_producer)
-    # 
-    # printer.filter(tweet_fields="created_at,geo,id,lang,text")
-    # printer = TweetPrinterV2(bearer_token)
-    # print(printer.get_rules())
-    # printer.filter(tweet_fields="created_at,geo,id,lang,text")
+    printer.stream(kafka_topic, kafka_producer)
+
     # init kafka
     return {"message": "finished"}
+
+
 
 
 @app.get("/token")
@@ -92,3 +74,6 @@ async def root():
 async def root():
     producer = KafkaProducer(bootstrap_servers='kafka:9093')  # kafka debe venir del .env
     producer.send('trump', bytes('hola', encoding='utf-8'))
+
+
+

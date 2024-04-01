@@ -24,11 +24,23 @@ class Twitterapi(tweepy.StreamingClient):
     def stream(self, hashtag, kafka_producer):
 
         self.kafka_producer = kafka_producer
+
+        #
+        # rule logic
+        # print(printer.get_rules())
+        # is already init my rule?
         # rule = StreamRule(value=hashtag)
+        # yes:
+        # printer.add_rules(StreamRule(value="Madrid"))
+        # printer.delete_rules([1659153209892429824])
+        #
+
         x = hashtag
         # printer.add_rules(rule)
         print(self.get_rules())
+
         print("hello")
+        # STREAMING LIMIT
         self.filter(tweet_fields="created_at,geo,id,lang,text")
         
     
@@ -39,19 +51,15 @@ class Twitterapi(tweepy.StreamingClient):
     
 
     def on_data(self, data):
-        
-        
-
         data = json.loads(data)
         # lang filter here
         if data['data']['lang'] == 'en':
             try:
-                topic_name = "trump"
-                now = datetime.datetime.utcnow()
-                now = int(now.timestamp())
+                topic_name = "trump" # arg - env
+                now = datetime.now()
                 text = data['data']['text']
                 # if loaded
-                self.kafka_producer.send(topic_name, value={'time': now, 'text': text})
+                self.kafka_producer.send(topic_name, value={'datetime': now, 'text': text})
                 # 
                 print('succefully sent to brokers')
             except Exception as ex:
