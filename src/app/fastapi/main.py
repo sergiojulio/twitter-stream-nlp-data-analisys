@@ -18,7 +18,8 @@ bearer_token = os.getenv('BEARER_TOKEN')
 stream_souce = os.getenv('STREAM_SOURCE')
 
 # init kafka
-kafka_producer = KafkaProducer(bootstrap_servers='kafka:9093') 
+# kafka_producer = KafkaProducer(bootstrap_servers='kafka:9093') 
+kafka_producer = ''
 
 app = FastAPI()
 

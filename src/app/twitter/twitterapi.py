@@ -59,7 +59,7 @@ class Twitterapi(tweepy.StreamingClient):
                 now = datetime.now()
                 text = data['data']['text']
                 # if loaded
-                self.kafka_producer.send(topic_name, value={'datetime': now, 'text': text})
+                # self.kafka_producer.send(topic_name, value={'datetime': now, 'text': text})
                 # 
                 print('succefully sent to brokers')
             except Exception as ex:
