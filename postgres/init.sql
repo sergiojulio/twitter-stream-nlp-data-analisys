@@ -4,4 +4,3 @@ CREATE TABLE IF NOT EXISTS stream (
     "text" TEXT,
     polarity REAL
 );
-
