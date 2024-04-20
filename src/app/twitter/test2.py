@@ -32,16 +32,25 @@ import logging
 
 import re
 
+from dotenv import load_dotenv
+import os
+from pathlib import Path
+# it should be get from container env
+dotenv_path = Path('.venv')
+load_dotenv(dotenv_path=dotenv_path)
+#
+access_token = os.getenv('ACCESS_TOKEN')
+
 
 #### Apache Pulsar
 #pulsarClient = pulsar.Client('pulsar://localhost:6650')
 
 
 #### Keywords to match
-keywordList = ['apache spark','Apache Spark', 'Apache Pinot','flink','Flink','Apache Flink','kafka', 'Kafka', 'Apache Kafka', 'pulsar', 'Pulsar', 'datapipeline', 'real-time', 'real-time streaming', 'StreamNative', 'Confluent', 'RedPandaData', 'Apache Pulsar', 'streaming', 'Streaming', 'big data', 'Big Data']
+keywordList = ['usa','ukraine','russia','israel','nato']
 
 #### Build our Regex
-words_re = re.compile("|".join(keywordList))
+words_re = re.compile("|".join(keywordList), re.IGNORECASE)
 
 #### Listener for Mastodon events
 
@@ -49,9 +58,9 @@ class Listener(mastodon.StreamListener):
 
  def on_update(self, status):
 
-    print(status)
+    #print(status)
 
-    if words_re.search(status.content):
+    if words_re.search(status.content) and str(status.language) == "en":
 
         #pulsarProducer = pulsarClient.create_producer(
         #   topic='persistent://public/default/mastodon',
@@ -82,8 +91,9 @@ class Listener(mastodon.StreamListener):
         mastodonRec.statuses_count = status.account.statuses_count
         """
 
-
-        print(status)
+        text = re.sub('<[^<]+?>', '', str(status.content))
+        print(re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE))
+        print("=============================================================")
         
         #pulsarProducer.send(mastodonRec,partition_key=str(uuid_key))
         #pulsarProducer.flush()
@@ -98,14 +108,16 @@ class Listener(mastodon.StreamListener):
 #curl https://streaming.mastodon.social/api/v1/streaming/public?access_token=ts4X0TcSb3BMDMmTG8_77HOKEL-vi4sLaYbBPeeiYdw
 
 mastodon = Mastodon(version_check_mode="none",
-                    access_token="ts4X0TcSb3BMDMmTG8_77HOKEL-vi4sLaYbBPeeiYdw", 
+                    access_token=access_token, 
                     api_base_url="https://mastodon.social/")
 
 
 print(mastodon.account_verify_credentials())
 
 #mastodon = Mastodon(api_base_url='https://streaming.mastodon.social/api/v1/streaming/public?access_token=ts4X0TcSb3BMDMmTG8_77HOKEL-vi4sLaYbBPeeiYdw')
-mastodon.stream_hashtag(tag='israel', listener=Listener())
+#mastodon.stream_hashtag(tag='israel', listener=Listener())
+
+mastodon.stream_public(listener=Listener())
 
 
 
