@@ -4,7 +4,11 @@ import os
 from pathlib import Path
 # import kafka
 from kafka import KafkaProducer
+
 from src.app.twitter.twitterapi import Twitterapi
+
+from src.app.mastodon.mastodonapi import Mastodonapi
+
 import json
 import time,csv
 from datetime import datetime
@@ -17,9 +21,11 @@ kafka_topic = os.getenv('KAFKA_TOPIC')
 bearer_token = os.getenv('BEARER_TOKEN')
 stream_souce = os.getenv('STREAM_SOURCE')
 
+access_token = os.getenv('ACCESS_TOKEN')
+
 # init kafka
-# kafka_producer = KafkaProducer(bootstrap_servers='kafka:9093') 
-kafka_producer = ''
+kafka_producer = KafkaProducer(bootstrap_servers='localhost:9092') # kafka:9093
+#kafka_producer = ''
 
 app = FastAPI()
 
@@ -64,6 +70,16 @@ async def root():
     return {"message": "finished"}
 
 
+@app.get("/streaming_mastodon")
+async def root():
+
+
+    printer = Mastodonapi()
+
+    printer.stream(kafka_topic, kafka_producer, access_token)
+
+    # init kafka
+    return {"message": "finished"}
 
 
 @app.get("/token")
@@ -73,7 +89,7 @@ async def root():
 
 @app.get("/test")
 async def root():
-    producer = KafkaProducer(bootstrap_servers='kafka:9093')  # kafka debe venir del .env
+    producer = KafkaProducer(bootstrap_servers='localhost:9092')  # kafka:9093 kafka debe venir del .env
     producer.send('trump', bytes('hola', encoding='utf-8'))
 
 
