@@ -79,8 +79,8 @@ services:
     container_name: postgres-server
     image: postgres:14.1-alpine
     restart: always
-    build: 
-      context: ./ # specify context, this case root pah
+    #build: 
+    #  context: ./ # specify context, this case root pah
     environment:
       - POSTGRES_DB=postgres_db
       - POSTGRES_USER=postgres
