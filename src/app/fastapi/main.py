@@ -24,7 +24,8 @@ stream_souce = os.getenv('STREAM_SOURCE')
 access_token = os.getenv('ACCESS_TOKEN')
 
 # init kafka
-kafka_producer = KafkaProducer(bootstrap_servers='localhost:9092') # kafka:9093
+# >>> producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), bootstrap_servers='kafka:9093') # kafka:9093
 #kafka_producer = ''
 
 app = FastAPI()
@@ -89,7 +90,7 @@ async def root():
 
 @app.get("/test")
 async def root():
-    producer = KafkaProducer(bootstrap_servers='localhost:9092')  # kafka:9093 kafka debe venir del .env
+    producer = KafkaProducer(bootstrap_servers='kafka:9093')  # kafka:9093 kafka debe venir del .env
     producer.send('trump', bytes('hola', encoding='utf-8'))
 
 

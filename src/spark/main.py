@@ -52,9 +52,12 @@ def myFunction(string):
         #print(sentence.sentiment.polarity)
         c = sentence.sentiment.polarity  + c
         i += 1
-
-    p = c / i
-    p = round(p,2)
+        
+    if i >0:
+        p = c / i
+        p = round(p,2)
+    else:
+        p = 0
 
     return p
 
@@ -108,17 +111,18 @@ if __name__ == "__main__":
     streamdf.printSchema()
 
     schema = StructType([
-        StructField("tweet_created", TimestampType()),
+        StructField("created", TimestampType()),
         StructField("text", StringType())
     ])
 
     udf_myFunction = udf(myFunction, FloatType()) # if the function returns an int
 
+            #.withColumn("created", (F.to_timestamp(F.col("created"), "yyyy-MM-dd HH:mm:ss"))) \
 
     streamdf = streamdf.selectExpr("CAST(value AS STRING)") \
             .select(F.from_json("value", schema=schema).alias("data")) \
             .select("data.*") \
-            .withColumn("polarity", udf_myFunction(F.col("text")))
+            .withColumn("polarity", udf_myFunction(F.col("text"))) 
 
     # output
 

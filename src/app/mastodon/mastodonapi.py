@@ -17,7 +17,6 @@ words_re = re.compile("|".join(keywordList), re.IGNORECASE)
 class MastodonApiListiner(mastodon.StreamListener):
 
     kafka_producer = ''
-    access_token = ''
 
     def on_update(self, status):
 
@@ -28,23 +27,32 @@ class MastodonApiListiner(mastodon.StreamListener):
             print("=============================================================")
             # KAFKA SEND
             topic_name = "trump" # arg - env
-            now = datetime.datetime.now()
+            # 2024-04-28 00:05:09.306463
+            # Use a standard date format instead, preferably ISO-8601. 2015-09-01T16:34:02
+            now = datetime.datetime.now().replace(microsecond=0)
+            now = "2015-09-01T16:34:02"
             # if loaded
             """
-                self.kafka_producer.send(topic_name, value={'datetime': now, 'text': text})
+                self.kafka_producer.send(topic_name, value={'created': now, 'text': text})
             AttributeError: 'str' object has no attribute 'send'
 
             """
-            #self.kafka_producer.send(topic_name, value={'datetime': now, 'text': text})
+            #bytes('hola', encoding='utf-8')
+            self.send(topic_name, {'created': str(now), 'text': text})
             # 
-            
+    def send(self, topic_name, value):
+        self.kafka_producer.send(topic_name, value)
+
+    def kafka(self, kafka_producer):
+        self.kafka_producer = kafka_producer
+
 
 
 class Mastodonapi():
 
     def stream(self, hashtag, kafka_producer, access_token):
 
-        
+        print(kafka_producer)
 
         self.kafka_producer = kafka_producer
 
@@ -53,8 +61,11 @@ class Mastodonapi():
                             api_base_url="https://mastodon.social/")
         
         print(mastodon.account_verify_credentials())
-        
-        mastodon.stream_public(listener=MastodonApiListiner())
+
+        clase = MastodonApiListiner()
+        clase.kafka(kafka_producer)
+
+        mastodon.stream_public(listener=clase)
 
 
 #print(mastodon.account_verify_credentials())
