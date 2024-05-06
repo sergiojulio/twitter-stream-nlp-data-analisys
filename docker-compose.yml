@@ -11,6 +11,9 @@ services:
       - 5678:5678 # streamlit
     volumes:
       - .:/code # add in preferences resources (workin directory)
+    environment:
+      - KAFKA_TOPIC=kafka_topic
+
   zookeeper:
     container_name: zookeeper-server
     image: docker.io/bitnami/zookeeper:3.8
@@ -20,6 +23,7 @@ services:
       - "zookeeper_data:/bitnami"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+
   kafka:
     container_name: kafka-server
     image: docker.io/bitnami/kafka:3.4
@@ -37,10 +41,8 @@ services:
     depends_on:
       - zookeeper
 
-
   spark:
     container_name: spark-server
-    # image: docker.io/bitnami/spark:3.2
     build: 
       context: ./ # specify context, this case root pah
       dockerfile: ./docker/spark/Dockerfile # location
@@ -73,14 +75,12 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
     volumes:
-      - .:/code # add in preferences resources (workin directory)
+      - .:/code # add in preferences resources (work directory)
 
   postgres:
     container_name: postgres-server
     image: postgres:14.1-alpine
     restart: always
-    #build: 
-    #  context: ./ # specify context, this case root pah
     environment:
       - POSTGRES_DB=postgres_db
       - POSTGRES_USER=postgres
@@ -89,10 +89,8 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      #- postgres-data:/var/lib/postgresql/data
       - ./postgres/data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-
 
 volumes:
   app:
@@ -104,4 +102,3 @@ volumes:
   postgres-data:  
   spark:
     driver: local
-  # postgres persistente vulumen

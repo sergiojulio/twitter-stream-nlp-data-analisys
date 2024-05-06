@@ -18,9 +18,10 @@ dotenv_path = Path('.venv')
 load_dotenv(dotenv_path=dotenv_path)
 #
 kafka_topic = os.getenv('KAFKA_TOPIC')
+# twitter deprecated
 bearer_token = os.getenv('BEARER_TOKEN')
 stream_souce = os.getenv('STREAM_SOURCE')
-
+# mastodon
 access_token = os.getenv('ACCESS_TOKEN')
 
 # init kafka
@@ -57,7 +58,7 @@ async def root():
     return {"message": "finished"}
 
 
-
+# twitter deprecated
 @app.get("/streaming_twitter")
 async def root():
 

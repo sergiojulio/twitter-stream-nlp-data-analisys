@@ -41,19 +41,17 @@ def write_to_pgsql(df, epoch_id):
     .save()
 
 
-def myFunction(string):
+def polarity(string):
 
     blob = TextBlob(clean_tweet(string))
 
-    p = 0
-    c = 0
-    i = 0
+    p = c = i = 0
+
     for sentence in blob.sentences:
-        #print(sentence.sentiment.polarity)
         c = sentence.sentiment.polarity  + c
         i += 1
         
-    if i >0:
+    if i > 0:
         p = c / i
         p = round(p,2)
     else:
@@ -96,8 +94,6 @@ if __name__ == "__main__":
 
     spark,sc = init_spark()
 
-    
-
     streamdf = spark \
         .readStream \
         .format("kafka") \
@@ -115,28 +111,28 @@ if __name__ == "__main__":
         StructField("text", StringType())
     ])
 
-    udf_myFunction = udf(myFunction, FloatType()) # if the function returns an int
+    udf_polarity = udf(polarity, FloatType()) # if the function returns an int
 
             #.withColumn("created", (F.to_timestamp(F.col("created"), "yyyy-MM-dd HH:mm:ss"))) \
 
     streamdf = streamdf.selectExpr("CAST(value AS STRING)") \
             .select(F.from_json("value", schema=schema).alias("data")) \
             .select("data.*") \
-            .withColumn("polarity", udf_myFunction(F.col("text"))) 
+            .withColumn("polarity", udf_polarity(F.col("text"))) 
 
     # output
 
-    # csv_output = streamdf \
-    #     .writeStream \
-    #     .format("csv")\
-    #     .option("format", "append")\
-    #     .trigger(processingTime = "5 seconds")\
-    #     .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
-    #     .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
-    #     .outputMode("append") \
-    #     .start()
-    
-    # spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
+    csv_output = streamdf \
+        .writeStream \
+        .format("csv")\
+        .option("format", "append")\
+        .trigger(processingTime = "5 seconds")\
+        .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
+        .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
+        .outputMode("append") \
+        .start()
+
+    spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
 
     console_output = streamdf \
         .writeStream  \
