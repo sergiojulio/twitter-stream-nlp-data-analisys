@@ -122,17 +122,16 @@ if __name__ == "__main__":
 
     # output
 
-    csv_output = streamdf \
-        .writeStream \
-        .format("csv")\
-        .option("format", "append")\
-        .trigger(processingTime = "5 seconds")\
-        .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
-        .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
-        .outputMode("append") \
-        .start()
-
-    spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
+    # csv_output = streamdf \
+    #     .writeStream \
+    #     .format("csv")\
+    #     .option("format", "append")\
+    #     .trigger(processingTime = "5 seconds")\
+    #     .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
+    #     .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
+    #     .outputMode("append") \
+    #     .start()
+    # spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
 
     console_output = streamdf \
         .writeStream  \

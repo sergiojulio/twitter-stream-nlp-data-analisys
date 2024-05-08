@@ -13,14 +13,16 @@ import json
 import time,csv
 from datetime import datetime
 
+kafka_topic = os.environ["KAFKA_TOPIC"]
+
 # it should be get from container env
 dotenv_path = Path('.venv')
 load_dotenv(dotenv_path=dotenv_path)
 #
-kafka_topic = os.getenv('KAFKA_TOPIC')
+
 # twitter deprecated
 bearer_token = os.getenv('BEARER_TOKEN')
-stream_souce = os.getenv('STREAM_SOURCE')
+stream_source = os.getenv('STREAM_SOURCE')
 # mastodon
 access_token = os.getenv('ACCESS_TOKEN')
 
@@ -91,8 +93,11 @@ async def root():
 
 @app.get("/test")
 async def root():
-    producer = KafkaProducer(bootstrap_servers='kafka:9093')  # kafka:9093 kafka debe venir del .env
-    producer.send('trump', bytes('hola', encoding='utf-8'))
+    producer = KafkaProducer(bootstrap_servers='kafka:9093')
+    producer.send(kafka_topic, bytes('Test', encoding='utf-8'))
+    return {"kafka_topic":kafka_topic}
+    #  # kafka:9093 kafka debe venir del .env
+    #
 
 
 
