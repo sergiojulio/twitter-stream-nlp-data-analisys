@@ -8,11 +8,13 @@ services:
     command: uvicorn src.app.fastapi.main:app --host 0.0.0.0 --port 8080 --reload
     ports:
       - 8080:8080 # fastapi
-      - 5678:5678 # streamlit
+      - 8501:8501 # streamlit
     volumes:
       - .:/code # add in preferences resources (workin directory)
     environment:
       - KAFKA_TOPIC=kafka_topic
+    depends_on:
+      - kafka
 
   zookeeper:
     container_name: zookeeper-server
@@ -53,11 +55,21 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+
       - KAFKA_TOPIC=kafka_topic
+      - KAFKA_SERVER=kafka:9093
+
+      - POSTGRES_SERVER=postgres:5432
+      - POSTGRES_DB=postgres_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=postgres
+
     ports:
       - '8081:8081'
     volumes:
       - .:/code # add in preferences resources (workin directory)
+    depends_on:
+      - postgres      
 
   spark-worker:
     container_name: worker-server
@@ -68,8 +80,8 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=4
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
@@ -78,10 +90,12 @@ services:
 
       - KAFKA_TOPIC=kafka_topic
       - KAFKA_SERVER=kafka:9093
+
+      - POSTGRES_SERVER=postgres:5432
       - POSTGRES_DB=postgres_db
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_ROOT_PASSWORD=root
+      - POSTGRES_PASS=postgres
+
 
     volumes:
       - .:/code # add in preferences resources (work directory)

@@ -8,6 +8,17 @@ from pyspark.sql.functions import udf
 import time
 import re
 from textblob import TextBlob
+import os
+
+# ENV
+kafka_topic = os.environ["KAFKA_TOPIC"]
+kafka_server = os.environ["KAFKA_SERVER"]
+
+postgres_db = os.environ["POSTGRES_DB"]
+postgres_user = os.environ["POSTGRES_USER"]
+postgres_pass = os.environ["POSTGRES_PASS"]
+postgres_server = os.environ["POSTGRES_SERVER"]
+
 
 
 def clean_tweet(tweet):
@@ -31,11 +42,11 @@ def write_to_pgsql(df, epoch_id):
 
     df.write \
     .format('jdbc') \
-    .options(url="jdbc:postgresql://postgres:5432/postgres_db",
+    .options(url="jdbc:postgresql://" + postgres_server + "/" + postgres_db,
             driver="org.postgresql.Driver",
             dbtable="stream",
-            user="postgres",
-            password="postgres",
+            user=postgres_user,
+            password=postgres_pass,
             ) \
     .mode('append') \
     .save()
@@ -67,13 +78,11 @@ def init_spark():
   conf = pyspark.SparkConf().setAppName('MyApp').setMaster('spark://spark-master:7077')
   sc = pyspark.SparkContext(conf=conf)
     #.config("spark.jars", "/code/src/spark/postgresql-42.6.2.jar") \
-
   """
 
   spark = SparkSession \
     .builder \
     .appName("twitter-stream-nlp-data-analysis") \
-    .master('spark://spark:7077') \
     .getOrCreate()
   
   spark.sparkContext.setLogLevel("ERROR")
@@ -89,7 +98,7 @@ def init_spark():
 
 if __name__ == "__main__":
 
-    print("Stream Data Processing Starting ...")
+    print("Stream Data Processing Starting... topic:" + kafka_topic)
     print(time.strftime("%Y-%m-%d %H:%M:%S"))
 
     spark,sc = init_spark()
@@ -97,8 +106,8 @@ if __name__ == "__main__":
     streamdf = spark \
         .readStream \
         .format("kafka") \
-        .option("kafka.bootstrap.servers", "kafka:9093") \
-        .option("subscribe", "trump") \
+        .option("kafka.bootstrap.servers", kafka_server) \
+        .option("subscribe", kafka_topic) \
         .option("startingOffsets", "latest") \
         .load() 
     

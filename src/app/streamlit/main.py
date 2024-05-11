@@ -21,11 +21,11 @@ placeholder = st.empty()
 for seconds in range(200):
 
     # Perform query.
-    df = conn.query('SELECT * FROM stream ORDER BY tweet_created ASC LIMIT 10;', ttl="1s") # ttl for caching
+    df = conn.query('select * from (SELECT * FROM stream where created is not null ORDER BY created DESC LIMIT 10) A order by created asc ;', ttl="1s") # ttl for caching
 
     with placeholder.container():
         #st.line_chart(data=None, *, x=None, y=None, color=None, width=0, height=0, use_container_width=True)
-        st.line_chart(data=df, x='tweet_created', y='polarity')
+        st.line_chart(data=df, x='created', y='polarity')
 
         st.markdown("### Detailed Data View")
         st.dataframe(df)
