@@ -40,6 +40,8 @@ def clean_tweet(tweet):
 
 def write_to_pgsql(df, epoch_id):
 
+    # discard polarity null
+
     df.write \
     .format('jdbc') \
     .options(url="jdbc:postgresql://" + postgres_server + "/" + postgres_db,

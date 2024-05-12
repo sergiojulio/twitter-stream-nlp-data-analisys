@@ -21,6 +21,7 @@ placeholder = st.empty()
 for seconds in range(200):
 
     # Perform query.
+    # gruop by timestamp and prom polarity
     df = conn.query('select * from (SELECT * FROM stream where created is not null ORDER BY created DESC LIMIT 10) A order by created asc ;', ttl="1s") # ttl for caching
 
     with placeholder.container():
@@ -28,5 +29,6 @@ for seconds in range(200):
         st.line_chart(data=df, x='created', y='polarity')
 
         st.markdown("### Detailed Data View")
+        # sort desc
         st.dataframe(df)
         time.sleep(1)

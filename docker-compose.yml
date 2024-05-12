@@ -13,8 +13,9 @@ services:
       - .:/code # add in preferences resources (workin directory)
     environment:
       - KAFKA_TOPIC=kafka_topic
-    depends_on:
-      - kafka
+    # depends_on:
+    #   kafka:
+    #     condition: service_healthy
 
   zookeeper:
     container_name: zookeeper-server
@@ -42,6 +43,11 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
     depends_on:
       - zookeeper
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--list", "--zookeeper", "zookeeper:2181"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
   spark:
     container_name: spark-server
@@ -65,7 +71,7 @@ services:
       - POSTGRES_PASS=postgres
 
     ports:
-      - '8081:8081'
+      - '4040:4040'
     volumes:
       - .:/code # add in preferences resources (workin directory)
     depends_on:

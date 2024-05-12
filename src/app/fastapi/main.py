@@ -28,7 +28,6 @@ access_token = os.getenv('ACCESS_TOKEN')
 
 # init kafka
 # >>> producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), bootstrap_servers='kafka:9093') # kafka:9093
 #kafka_producer = ''
 
 app = FastAPI()
@@ -76,6 +75,8 @@ async def root():
 
 @app.get("/streaming_mastodon")
 async def root():
+
+    kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), bootstrap_servers='kafka:9093') # kafka:9093
 
 
     printer = Mastodonapi()
