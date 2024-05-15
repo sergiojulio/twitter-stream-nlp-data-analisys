@@ -7,35 +7,35 @@ from time import gmtime, strftime
 import re
 
 
-#### Keywords to match ENV
-keywordList = ['usa','ukraine','russia','israel','nato']
-
-#### Build our Regex
-words_re = re.compile("|".join(keywordList), re.IGNORECASE)
 
 #### Listener for Mastodon events
 class MastodonApiListiner(mastodon.StreamListener):
 
     kafka_producer = ''
     kafka_topic = ''
+    mastodon_key_word_list = ''
 
     def on_update(self, status):
+
+        #### Build our Regex
+        words_re = re.compile("|".join(self.mastodon_key_word_list), re.IGNORECASE)
 
         if words_re.search(status.content) and str(status.language) == "en":
 
             # remove html tags
             text = re.sub('<[^<]+?>', '', str(status.content))
             #
+            text = re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE)
+
             print(re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE))
             print("=============================================================")
             
             kafka_topic = self.kafka_topic # arg - env
             # 2024-04-28 00:05:09.306463
             # Use a standard date format instead, preferably ISO-8601. 2015-09-01T16:34:02
-            # now = datetime.datetime.now().replace(microsecond=0)
-            now = datetime.datetime.now().replace(microsecond=0).isoformat()
             # now = "2015-09-01T16:34:02"
-
+            now = datetime.datetime.now().replace(microsecond=0).isoformat()
+            
             # KAFKA SEND
             # is kafka running?
             self.send(kafka_topic, {'created': str(now), 'text': text})
@@ -51,12 +51,15 @@ class MastodonApiListiner(mastodon.StreamListener):
 
 class Mastodonapi():
 
-    def stream(self, kafka_topic, kafka_producer, access_token):
+    def stream(self, kafka_topic, kafka_producer, access_token, mastodon_key_word_list):
 
+        #### Keywords to match ENV convert strig to array
+        # mastodon_key_word_list = ['usa','ukraine','russia','israel','nato']
         # print(kafka_producer)
 
         self.kafka_producer = kafka_producer
         self.kafka_topic = kafka_topic
+        self.mastodon_key_word_list = mastodon_key_word_list.split(",")
 
         mastodon = Mastodon(version_check_mode="none",
                             access_token=access_token, 
@@ -65,7 +68,7 @@ class Mastodonapi():
         print(mastodon.account_verify_credentials())
 
         listener = MastodonApiListiner()
-        listener.kafka(kafka_producer, kafka_topic)
+        listener.kafka(kafka_producer, kafka_topic, mastodon_key_word_list)
 
         mastodon.stream_public(listener=listener)
 

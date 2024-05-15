@@ -154,6 +154,8 @@ if __name__ == "__main__":
         #.awaitTermination()
 
     # remove row with polarity null streamdf
+    streamdf = streamdf.filter(streamdf.polarity. isNotNull())
+    #
 
     db_output = streamdf \
         .writeStream  \
