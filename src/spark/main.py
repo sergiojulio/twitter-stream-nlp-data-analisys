@@ -13,12 +13,12 @@ import os
 # ENV
 kafka_topic = os.environ["KAFKA_TOPIC"]
 kafka_server = os.environ["KAFKA_SERVER"]
-
+#
 postgres_db = os.environ["POSTGRES_DB"]
 postgres_user = os.environ["POSTGRES_USER"]
 postgres_pass = os.environ["POSTGRES_PASS"]
 postgres_server = os.environ["POSTGRES_SERVER"]
-
+# path
 
 
 def clean_tweet(tweet):
@@ -133,15 +133,15 @@ if __name__ == "__main__":
 
     # output
 
-    # csv_output = streamdf \
-    #     .writeStream \
-    #     .format("csv")\
-    #     .option("format", "append")\
-    #     .trigger(processingTime = "5 seconds")\
-    #     .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
-    #     .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
-    #     .outputMode("append") \
-    #     .start()
+    csv_output = streamdf \
+         .writeStream \
+         .format("csv")\
+         .option("format", "append")\
+         .trigger(processingTime = "5 seconds")\
+         .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
+         .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
+         .outputMode("append") \
+         .start()
     # spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
 
     console_output = streamdf \
@@ -152,6 +152,8 @@ if __name__ == "__main__":
         .format("console") \
         .start() 
         #.awaitTermination()
+
+    # remove row with polarity null streamdf
 
     db_output = streamdf \
         .writeStream  \

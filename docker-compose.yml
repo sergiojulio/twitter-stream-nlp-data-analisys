@@ -1,4 +1,5 @@
-version: "3.1"
+#version: "3.1"
+version: "3.8"
 services:
   app:
     container_name: python-server
@@ -71,7 +72,7 @@ services:
       - POSTGRES_PASS=postgres
 
     ports:
-      - '4040:4040'
+      - '4040:4040' # UI
     volumes:
       - .:/code # add in preferences resources (workin directory)
     depends_on:
