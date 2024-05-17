@@ -36,7 +36,7 @@ app = FastAPI()
 async def root():
  
     # with open csv
-    csvfile = open("/code/src/app/twitter/tweets.csv","r") # ENV STREAM_SOURCE
+    csvfile = open("../twitter/tweets.csv","r") # ENV STREAM_SOURCE
 
     reader = csv.DictReader(csvfile)
 

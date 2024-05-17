@@ -15,8 +15,9 @@ services:
     environment:
       - KAFKA_SERVER=kafka:9093
       - KAFKA_TOPIC=kafka_topic
-      - MASTODON_KEY_WORD_LIST=
-
+      - MASTODON_KEY_WORD_LIST=usa,ukraine,russia,nato
+    # env_file:
+    #   - ../.env.development
     # depends_on:
     #   kafka:
     #     condition: service_healthy
@@ -58,6 +59,8 @@ services:
     build: 
       context: ./ # specify context, this case root pah
       dockerfile: ./docker/spark/Dockerfile # location
+    #command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    #entrypoint: docker/development-entrypoint.sh
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no

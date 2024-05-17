@@ -40,8 +40,6 @@ def clean_tweet(tweet):
 
 def write_to_pgsql(df, epoch_id):
 
-    # discard polarity null
-
     df.write \
     .format('jdbc') \
     .options(url="jdbc:postgresql://" + postgres_server + "/" + postgres_db,
@@ -73,7 +71,6 @@ def polarity(string):
     return p
 
 
-
 def init_spark():
 
   """
@@ -91,11 +88,6 @@ def init_spark():
 
   sc = spark.sparkContext
   return spark,sc
-
-  """
-  Without spark action APIs(collect/take/first/saveAsTextFile) nothing will be executed on executors. 
-  Its not possible to distribute plain python code just by submitting to spark. 
-  """
 
 
 if __name__ == "__main__":
@@ -138,8 +130,8 @@ if __name__ == "__main__":
          .format("csv")\
          .option("format", "append")\
          .trigger(processingTime = "5 seconds")\
-         .option("path", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/csv")\
-         .option("checkpointLocation", "/home/sergio/dev/docker/twitter-stream-nlp-data-analysis/src/kafka/checkpoint") \
+         .option("path", "../kafka/csv")\
+         .option("checkpointLocation", "../kafka/checkpoint") \
          .outputMode("append") \
          .start()
     # spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
