@@ -18,16 +18,18 @@ class MastodonApiListiner(mastodon.StreamListener):
     def on_update(self, status):
 
         #### Build our Regex
-        words_re = re.compile("|".join(self.mastodon_key_word_list), re.IGNORECASE)
+        words_re = re.compile("|".join(self.mastodon_key_word_list.split(",")), re.IGNORECASE)
+
+        # print(self.mastodon_key_word_list)
 
         if words_re.search(status.content) and str(status.language) == "en":
 
             # remove html tags
             text = re.sub('<[^<]+?>', '', str(status.content))
             #
-            text = re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^https?:\/\/.*[\r\n]*', '', text)
 
-            print(re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE))
+            print(re.sub(r'^https?:\/\/.*[\r\n]*', '', text))
             print("=============================================================")
             
             kafka_topic = self.kafka_topic # arg - env
@@ -38,15 +40,17 @@ class MastodonApiListiner(mastodon.StreamListener):
             
             # KAFKA SEND
             # is kafka running?
+            # dont send text empty
             self.send(kafka_topic, {'created': str(now), 'text': text})
             # 
 
     def send(self, kafka_topic, value):
         self.kafka_producer.send(kafka_topic, value)
 
-    def kafka(self, kafka_producer, kafka_topic):
+    def kafka(self, kafka_producer, kafka_topic,mastodon_key_word_list):
         self.kafka_producer = kafka_producer
         self.kafka_topic = kafka_topic
+        self.mastodon_key_word_list = mastodon_key_word_list
 
 
 class Mastodonapi():
@@ -59,18 +63,18 @@ class Mastodonapi():
 
         self.kafka_producer = kafka_producer
         self.kafka_topic = kafka_topic
-        self.mastodon_key_word_list = mastodon_key_word_list.split(",")
+        self.mastodon_key_word_list = mastodon_key_word_list
 
         mastodon = Mastodon(version_check_mode="none",
                             access_token=access_token, 
                             api_base_url="https://mastodon.social/")
         
         print(mastodon.account_verify_credentials())
-
+        # bloque try
         listener = MastodonApiListiner()
         listener.kafka(kafka_producer, kafka_topic, mastodon_key_word_list)
-
         mastodon.stream_public(listener=listener)
+        # 
 
 
 #print(mastodon.account_verify_credentials())

@@ -27,13 +27,15 @@ stream_source = os.getenv('STREAM_SOURCE')
 access_token = os.getenv('ACCESS_TOKEN')
 
 
-kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), 
-                                bootstrap_servers=kafka_server) 
+
 
 app = FastAPI()
 
 @app.get("/streaming_csv")
 async def root():
+
+    kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), 
+                                bootstrap_servers=kafka_server) 
  
     # with open csv
     csvfile = open("../twitter/tweets.csv","r") # ENV STREAM_SOURCE
@@ -72,6 +74,9 @@ async def root():
 
 @app.get("/streaming_mastodon")
 async def root():
+    kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), 
+                                bootstrap_servers=kafka_server) 
+    
     printer = Mastodonapi()
     printer.stream(kafka_topic, kafka_producer, access_token, mastodon_key_word_list)
     return {"message": "finished"}

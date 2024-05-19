@@ -15,7 +15,7 @@ services:
     environment:
       - KAFKA_SERVER=kafka:9093
       - KAFKA_TOPIC=kafka_topic
-      - MASTODON_KEY_WORD_LIST=usa,ukraine,russia,nato
+      - MASTODON_KEY_WORD_LIST=usa,ukraine,russia,nato,palestine,israel,iran
     # env_file:
     #   - ../.env.development
     # depends_on:
