@@ -18,25 +18,7 @@ postgres_db = os.environ["POSTGRES_DB"]
 postgres_user = os.environ["POSTGRES_USER"]
 postgres_pass = os.environ["POSTGRES_PASS"]
 postgres_server = os.environ["POSTGRES_SERVER"]
-# path
 
-
-def clean_tweet(tweet):
-    stopwords = ["for", "on", "an", "a", "of", "and", "in", "the", "to", "from"]
-    temp = tweet.lower()
-    temp = re.sub("'", "", temp) 
-    temp = re.sub("@[A-Za-z0-9_]+","", temp)
-    temp = re.sub("#[A-Za-z0-9_]+","", temp)
-    temp = re.sub(r'http\S+', '', temp)
-    temp = re.sub('[()!?]', ' ', temp)
-    temp = re.sub('\[.*?\]',' ', temp)
-    temp = re.sub("[^a-z0-9]"," ", temp)
-    temp = temp.split()
-    temp = [w for w in temp if not w in stopwords]
-    temp = " ".join(word for word in temp)
-    return temp
-
-# os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.1.0,org.apache.spark:spark-sql-kafka-0-10_2.11:2.1.0 pyspark-shell'
 
 def write_to_pgsql(df, epoch_id):
 
@@ -54,12 +36,13 @@ def write_to_pgsql(df, epoch_id):
 
 def polarity(string):
 
-    blob = TextBlob(clean_tweet(string))
+    if type(string) != str:
+        return 0
 
+    blob = TextBlob(string)
     p = c = i = 0
-
     for sentence in blob.sentences:
-        c = sentence.sentiment.polarity  + c
+        c = sentence.sentiment.polarity + c
         i += 1
         
     if i > 0:
@@ -73,21 +56,17 @@ def polarity(string):
 
 def init_spark():
 
-  """
-  conf = pyspark.SparkConf().setAppName('MyApp').setMaster('spark://spark-master:7077')
-  sc = pyspark.SparkContext(conf=conf)
-    #.config("spark.jars", "/code/src/spark/postgresql-42.6.2.jar") \
-  """
+    spark = SparkSession \
+        .builder \
+        .appName("twitter-stream-nlp-data-analysis") \
+        .getOrCreate()
 
-  spark = SparkSession \
-    .builder \
-    .appName("twitter-stream-nlp-data-analysis") \
-    .getOrCreate()
-  
-  spark.sparkContext.setLogLevel("ERROR")
+    spark.conf.set("spark.sql.shuffle.partitions", 5)    
 
-  sc = spark.sparkContext
-  return spark,sc
+    spark.sparkContext.setLogLevel("ERROR")
+
+    sc = spark.sparkContext
+    return spark,sc
 
 
 if __name__ == "__main__":
@@ -116,25 +95,24 @@ if __name__ == "__main__":
 
     udf_polarity = udf(polarity, FloatType()) # if the function returns an int
 
-            #.withColumn("created", (F.to_timestamp(F.col("created"), "yyyy-MM-dd HH:mm:ss"))) \
 
     streamdf = streamdf.selectExpr("CAST(value AS STRING)") \
             .select(F.from_json("value", schema=schema).alias("data")) \
             .select("data.*") \
-            .withColumn("polarity", udf_polarity(F.col("text"))) 
+            .withColumn("polarity", udf_polarity(F.col("text"))) # bottleneck
 
-    # output
 
-    csv_output = streamdf \
-         .writeStream \
-         .format("csv")\
-         .option("format", "append")\
-         .trigger(processingTime = "5 seconds")\
-         .option("path", "../kafka/csv")\
-         .option("checkpointLocation", "../kafka/checkpoint") \
-         .outputMode("append") \
-         .start()
-    # spark.read.csv("oldLocation").coalesce(1).write.csv("newLocation")
+    # outputs
+    
+    # csv_output = streamdf \
+    #      .writeStream \
+    #      .format("csv")\
+    #      .option("format", "append")\
+    #      .trigger(processingTime = "5 seconds")\
+    #      .option("path", "../kafka/csv")\
+    #      .option("checkpointLocation", "../kafka/checkpoint") \
+    #      .outputMode("append") \
+    #      .start()
 
     console_output = streamdf \
         .writeStream  \

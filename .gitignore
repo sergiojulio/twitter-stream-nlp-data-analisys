@@ -133,3 +133,5 @@ src/twitter/tweets.csv
 
 src/app/streamlit/.streamlit/secrets.toml
 src/app/streamlit/.streamlit/
+src/kafka/csv/
+src/kafka/checkpoint/

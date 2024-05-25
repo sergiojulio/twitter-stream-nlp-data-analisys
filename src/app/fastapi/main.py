@@ -9,7 +9,7 @@ from src.app.mastodon.mastodonapi import Mastodonapi
 
 import json
 import time, csv
-from datetime import datetime
+import datetime
 
 kafka_topic = os.environ["KAFKA_TOPIC"]
 kafka_server = os.environ["KAFKA_SERVER"]
@@ -34,24 +34,23 @@ app = FastAPI()
 @app.get("/streaming_csv")
 async def root():
 
+    parent_dir_path = os.path.dirname(os.path.realpath(__file__))
+
     kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), 
                                 bootstrap_servers=kafka_server) 
  
     # with open csv
-    csvfile = open("../twitter/tweets.csv","r") # ENV STREAM_SOURCE
+    csvfile = open(parent_dir_path + "/../twitter/tweets.csv","r") 
 
     reader = csv.DictReader(csvfile)
 
     for row in reader:
 
-        data = {
-            "text": row['text'], # ENV field source
-            "datetime": datetime.now()
-        }
+        now = datetime.datetime.now().replace(microsecond=0).isoformat()
 
-        data_to_send = json.dumps(data) 
-        kafka_producer.send(kafka_topic, bytes(data_to_send, encoding='utf-8'))
-        time.sleep(1)
+        kafka_producer.send(kafka_topic, {'created': str(now), 'text': row['text']})
+
+        time.sleep(5)
 
     kafka_producer.close()
 

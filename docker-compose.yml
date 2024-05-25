@@ -6,7 +6,8 @@ services:
     build: 
       context: ./ # specify context, this case root pah
       dockerfile: ./docker/app/Dockerfile # location
-    command: uvicorn src.app.fastapi.main:app --host 0.0.0.0 --port 8080 --reload
+    # command: uvicorn src.app.fastapi.main:app --host 0.0.0.0 --port 8080 --reload
+    command: uvicorn src.app.fastapi.main:app --host 0.0.0.0 --port 8080
     ports:
       - 8080:8080 # fastapi
       - 8501:8501 # streamlit
@@ -48,11 +49,11 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
     depends_on:
       - zookeeper
-    healthcheck:
-      test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--list", "--zookeeper", "zookeeper:2181"]
-      interval: 5s
-      timeout: 10s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--list", "--zookeeper", "zookeeper:2181"]
+    #   interval: 5s
+    #   timeout: 10s
+    #   retries: 5
 
   spark:
     container_name: spark-server
