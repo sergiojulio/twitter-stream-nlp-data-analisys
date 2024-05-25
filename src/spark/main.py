@@ -61,7 +61,7 @@ def init_spark():
         .appName("twitter-stream-nlp-data-analysis") \
         .getOrCreate()
 
-    spark.conf.set("spark.sql.shuffle.partitions", 5)    
+    spark.conf.set("spark.sql.shuffle.partitions", 1)    
 
     spark.sparkContext.setLogLevel("ERROR")
 
@@ -76,12 +76,14 @@ if __name__ == "__main__":
 
     spark,sc = init_spark()
 
+
+    # .option("startingOffsets", "latest") 
+
     streamdf = spark \
         .readStream \
         .format("kafka") \
         .option("kafka.bootstrap.servers", kafka_server) \
         .option("subscribe", kafka_topic) \
-        .option("startingOffsets", "latest") \
         .load() 
     
     print("Printing Schema:")
