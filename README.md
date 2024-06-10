@@ -1,5 +1,4 @@
-# twitter-stream-nlp-data-analisys
-This is a twitter stream npl polarity analysis
+# twitter-stream-nlp-data-analisys (deprecated)
+This repo contains source files for twitter stream npl polarity analysis
 
-
-fastapi -> twitter -> socket -> kafka -> spark batch -> bigquery -> streamlit
+![alt text](https://github.com/sergiojulio/twitter-stream-nlp-data-analysis/diagram.png "P2")
