@@ -18,7 +18,6 @@ mastodon_key_word_list = os.environ["MASTODON_KEY_WORD_LIST"]
 # it should be get from container env
 dotenv_path = Path('.venv')
 load_dotenv(dotenv_path=dotenv_path)
-#
 
 # twitter deprecated
 bearer_token = os.getenv('BEARER_TOKEN')
@@ -27,40 +26,34 @@ stream_source = os.getenv('STREAM_SOURCE')
 access_token = os.getenv('ACCESS_TOKEN')
 
 
-
-
 app = FastAPI()
 
 @app.get("/streaming_csv")
 async def root():
 
     parent_dir_path = os.path.dirname(os.path.realpath(__file__))
-
     kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), 
                                 bootstrap_servers=kafka_server) 
  
     # with open csv
     csvfile = open(parent_dir_path + "/../twitter/tweets.csv","r") 
-
     reader = csv.DictReader(csvfile)
 
     for row in reader:
-
         now = datetime.datetime.now().replace(microsecond=0).isoformat()
-
         kafka_producer.send(kafka_topic, {'created': str(now), 'text': row['text']})
-
         time.sleep(5)
 
     kafka_producer.close()
-
     return {"message": "finished"}
 
 
 # twitter deprecated
 @app.get("/streaming_twitter")
 async def root():
-
+    
+    kafka_producer = KafkaProducer(value_serializer=lambda v: json.dumps(v).encode('utf-8'), 
+                                bootstrap_servers=kafka_server) 
     # init twitter 
     printer = Twitterapi(bearer_token)
     # 

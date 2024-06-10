@@ -17,6 +17,10 @@ services:
       - KAFKA_SERVER=kafka:9093
       - KAFKA_TOPIC=kafka_topic
       - MASTODON_KEY_WORD_LIST=usa,ukraine,russia,nato,palestine,israel,iran
+      - POSTGRES_SERVER=postgres:5432
+      - POSTGRES_DB=postgres_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=postgres      
     # env_file:
     #   - ../.env.development
     # depends_on:
@@ -32,6 +36,7 @@ services:
       - "zookeeper_data:/bitnami"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+    # zookeeper.connection.timeout.ms=60000
 
   kafka:
     container_name: kafka-server
@@ -70,10 +75,8 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-
       - KAFKA_TOPIC=kafka_topic
       - KAFKA_SERVER=kafka:9093
-
       - POSTGRES_SERVER=postgres:5432
       - POSTGRES_DB=postgres_db
       - POSTGRES_USER=postgres
@@ -102,10 +105,8 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
-
       - KAFKA_TOPIC=kafka_topic
       - KAFKA_SERVER=kafka:9093
-
       - POSTGRES_SERVER=postgres:5432
       - POSTGRES_DB=postgres_db
       - POSTGRES_USER=postgres
